@@ -1,0 +1,2 @@
+/data/data/com.termux/files/usr/bin/llvm-ar qc libshape.a CMakeFiles/shape.dir/jsoncpp.cpp.o
+/data/data/com.termux/files/usr/bin/llvm-ranlib libshape.a

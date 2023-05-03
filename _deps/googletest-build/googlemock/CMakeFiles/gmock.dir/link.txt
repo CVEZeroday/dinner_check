@@ -1,0 +1,2 @@
+/data/data/com.termux/files/usr/bin/llvm-ar qc ../../../lib/libgmock.a "CMakeFiles/gmock.dir/src/gmock-all.cc.o"
+/data/data/com.termux/files/usr/bin/llvm-ranlib ../../../lib/libgmock.a
