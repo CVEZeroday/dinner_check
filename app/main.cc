@@ -1,7 +1,6 @@
 #include <iostream>
 #include <fstream>
 #include "json.h"
-using namespace std;
 
 #define JSON_PATH "./dinner_checker_student_data.json"
 
@@ -12,9 +11,34 @@ typedef struct STUDENT_DATA
 {
   const char *name;
   int id;
-  unsigned int data;
+  bool checked;
 } STUDENT_DATA;
 // 16 Bytes
+
+int saveStudentData(int id, std::string name, bool checked)
+{
+  std::ifstream i_json_file(JSON_PATH, std::ifstream::binary);
+  std::ofstream o_json_file(JSON_PATH, std::ofstream::binary);
+
+  Json::Value root;
+  i_json_file >> root;
+  i_json_file.close();
+
+  Json::Value studentData;
+  studentData["studentNumber"] = id;
+  studentData["studentName"] = name;
+  studentData["checked"] = false;
+
+  root.append(studentData);
+
+  Json::StreamWriterBuilder builder;
+  std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+
+  writer->write(root, &std::cout);
+  writer->write(root, &o_json_file);
+
+  return 0;
+}
 
 // toggleStudent.argtypes = (c.c_wchar_p)
 // toggleStudent.restype = c.c_int
@@ -25,21 +49,26 @@ int toggleStudent(int id)
   STUDENT_DATA data_;
   data_.id = 0;
   data_.name = "";
-  data_.data = 0;
+  data_.checked = false;
 
-  std::ifstream json_file(JSON_PATH, std::ifstream::binary);
+  std::ifstream i_json_file(JSON_PATH, std::ifstream::binary);
 
   Json::Value root;
-  json_file >> root;
-  json_file.close();
+  i_json_file >> root;
+  i_json_file.close();
 
-  for (const Json::Value& studentData_ : root["studentData"])
+  for (Json::Value& studentData_ : root["studentData"])
   {
     if (studentData_["studentNumber"].asInt() == id)
     {
-      //
+      studentData_["checked"] = true;
     }
   }
+
+  std::ofstream o_json_file(JSON_PATH, std::ofstream::binary);
+  o_json_file << root;
+  o_json_file.close();
+
   return 0;
 }
 
@@ -52,7 +81,7 @@ STUDENT_DATA getSpecificStudentData(int id)
   STUDENT_DATA data_;
   data_.id = 0;
   data_.name = "";
-  data_.data = 0;
+  data_.checked = false;
 
   std::ifstream json_file(JSON_PATH, std::ifstream::binary);
 
@@ -66,7 +95,7 @@ STUDENT_DATA getSpecificStudentData(int id)
     {
       data_.id = id;
       data_.name = studentData_["studentName"].asCString();
-      data_.data = studentData_["studentData"].asUInt();
+      data_.checked = studentData_["checked"].asBool();
       break;
     }
   }
@@ -78,9 +107,9 @@ STUDENT_DATA getSpecificStudentData(int id)
 // getStudentsData.restype = vector<STUDENT_dATA>
 // input : none
 // output : Data of all of the students
-vector<STUDENT_DATA> getStudentsData()
+std::vector<STUDENT_DATA> getStudentsData()
 {
-  vector<STUDENT_DATA> data_v;
+  std::vector<STUDENT_DATA> data_v;
   STUDENT_DATA data_;
 
   std::ifstream json_file(JSON_PATH, std::ifstream::binary);
@@ -93,7 +122,7 @@ vector<STUDENT_DATA> getStudentsData()
   {
     data_.id = studentData_["studentNumber"].asInt();
     data_.name = studentData_["studentName"].asCString();
-    data_.data = studentData_["studentData"].asUInt();
+    data_.checked = studentData_["checked"].asBool();
     data_v.push_back(data_);
   }
 
