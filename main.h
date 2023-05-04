@@ -4,26 +4,25 @@
 
 #include "json/json.h"
 
-#ifdef _WIN64
-#include <io.h>
-#endif
-#ifdef linux
-#include <unistd.h>
-#endif
-
 #define DINNER_CHECKER_API_VERSION "0.1"
 
+#define FORMAT_DATE(n) (n < 10 ? "0"+std::to_string(n) : std::to_string(n))
+#define DATE (std::to_string(t.tm_year+1900)+FORMAT_DATE(t.tm_mon+1)+FORMAT_DATE(t.tm_mday))
+
 #ifdef _WIN64
-#define JSON_PATH (".\\data\\" + std::to_string(t.tm_year+1900)+std::to_string(t.tm_mon+1)+std::to_string(t.tm_mday)+ "_student_dinner_data.json")
+#define JSON_PATH (".\\data\\" + DATE + "_student_dinner_data.json")
+#define JSON_PATH_DATE(date_) (".\\data\\" + date_ + "_student_dinner_data.json")
 #define JSON_PATH_BACKUP (".\\data\\backup_student_dinner_data.json")
 #endif
 #ifdef linux
-#define JSON_PATH ("./data/" + std::to_string(t.tm_year+1900)+std::to_string(t.tm_mon+1)+std::to_string(t.tm_mday)+ "_student_dinner_data.json")
+#define JSON_PATH ("./data/" + DATE + "_student_dinner_data.json")
+#define JSON_PATH_DATE(date_) ("./data/" + date_ + "_student_dinner_data.json")
 #define JSON_PATH_BACKUP ("./data/backup_student_dinner_data.json")
 #endif
 
-#define FILE_CHECK() \
-if (access(JSON_PATH.c_str(), 0) != -1) \
+#define FILE_CHECK(path) \
+std::ifstream __file(path); \
+if (!__file.good()) \
 { \
   initializeJsonFile(); \
 }
@@ -33,7 +32,7 @@ typedef struct STUDENT_DATA
   std::string name;
   int id;
   bool checked;
-  long time;
+  std::string time;
 } STUDENT_DATA;
 // 9 Bytes
 
@@ -57,17 +56,18 @@ inline int initializeJsonFile()
 
   headerData["date"] = date;
   headerData["date_str"] = std::to_string(t.tm_year + 1900) + "-"
-                          + std::to_string(t.tm_mon + 1) + "-"
-                          + std::to_string(t.tm_mday) + " "
-                          + std::to_string(t.tm_hour) + ":"
-                          + std::to_string(t.tm_min) + ":"
-                          + std::to_string(t.tm_sec);
+                          + FORMAT_DATE(t.tm_mon + 1) + "-"
+                          + FORMAT_DATE(t.tm_mday) + " "
+                          + FORMAT_DATE(t.tm_hour) + ":"
+                          + FORMAT_DATE(t.tm_min) + ":"
+                          + FORMAT_DATE(t.tm_sec);
   headerData["version"] = DINNER_CHECKER_API_VERSION;
   root["headerData"] = headerData;
+  root["studentData"] = Json::arrayValue;
 
   try
   {
-    std::ifstream i_json_file(JSON_PATH_BACKUP, std::ifstream::binary);
+    std::ifstream i_json_file(JSON_PATH_BACKUP);
     i_json_file >> studentData;
     i_json_file.close();
 
@@ -97,29 +97,25 @@ inline int saveStudentData(int id, const std::string& name, bool checked)
   struct tm t;
   time_t curr_time = time(nullptr);
   localtime_r(&curr_time, &t);
-  FILE_CHECK();
+  FILE_CHECK(JSON_PATH);
 
-  std::ofstream o_json_file;
-
-  std::ifstream i_json_file(JSON_PATH, std::ifstream::binary);
+  std::ifstream i_json_file(JSON_PATH);
 
   Json::Value root;
   i_json_file >> root;
   i_json_file.close();
 
-  Json::Value studentData;
-  studentData["studentNumber"] = id;
-  studentData["studentName"] = name;
-  studentData["checked"] = checked;
-  studentData["checked_time"] = "";
+  Json::Value& studentData = root["studentData"];
 
-  //try
-  //{
-    root["studentData"].append(studentData);
-  //} catch(std::exception err)
-  //{
-  //  root["studentData"] = studentData;
-  //}
+  Json::Value newStudent;
+  newStudent["studentNumber"] = id;
+  newStudent["studentName"] = name;
+  newStudent["checked"] = checked;
+  newStudent["checked_time"] = "";
+  
+  studentData.append(newStudent);
+
+  std::ofstream o_json_file;
 
   o_json_file.open(JSON_PATH);
   Json::StreamWriterBuilder o_builder;
@@ -132,7 +128,7 @@ inline int saveStudentData(int id, const std::string& name, bool checked)
 
   std::ofstream o_json_file_backup;
   o_json_file_backup.open(JSON_PATH_BACKUP);
-  writer->write(studentData, &o_json_file_backup);
+  writer->write(root["studentData"], &o_json_file_backup);
   o_json_file_backup.close();
 
   return 0;
@@ -143,24 +139,28 @@ inline int uncheckStudent(int id)
   struct tm t;
   time_t curr_time = time(nullptr);
   localtime_r(&curr_time, &t);
+  FILE_CHECK(JSON_PATH);
 
   STUDENT_DATA data_;
   data_.id = 0;
   data_.name = "";
   data_.checked = false;
 
-  std::ifstream i_json_file(JSON_PATH, std::ifstream::binary);
+  std::ifstream i_json_file(JSON_PATH);
 
   Json::Value root;
   i_json_file >> root;
   i_json_file.close();
 
+  bool flag = true;
   for (Json::Value& studentData_ : root["studentData"])
   {
     if (studentData_["studentNumber"].asInt() == id)
     {
       studentData_["checked"] = false;
       studentData_["checked_time"] = "";
+      flag = false;
+      break;
     }
   }
 
@@ -175,7 +175,7 @@ inline int uncheckStudent(int id)
 
   writer->write(root, &o_json_file);
 
-  return 0;
+  return flag;
 }
 
 inline int checkStudent(int id)
@@ -188,13 +188,15 @@ inline int checkStudent(int id)
   struct tm t;
   time_t curr_time = time(nullptr);
   localtime_r(&curr_time, &t);
+  FILE_CHECK(JSON_PATH);
 
-  std::ifstream i_json_file(JSON_PATH, std::ifstream::binary);
+  std::ifstream i_json_file(JSON_PATH);
 
   Json::Value root;
   i_json_file >> root;
   i_json_file.close();
 
+  bool flag = true;
   for (Json::Value& studentData_ : root["studentData"])
   {
     if (studentData_["studentNumber"].asInt() == id)
@@ -206,6 +208,8 @@ inline int checkStudent(int id)
                                   + std::to_string(t.tm_hour) + ":"
                                   + std::to_string(t.tm_min) + ":"
                                   + std::to_string(t.tm_sec);
+      flag = false;
+      break;
     }
   }
 
@@ -220,7 +224,7 @@ inline int checkStudent(int id)
 
   writer->write(root, &o_json_file);
 
-  return 0;
+  return flag;
 }
 
 /**************************/
@@ -231,6 +235,7 @@ inline STUDENT_DATA getSpecificStudentData(int id)
   struct tm t;
   time_t curr_time = time(nullptr);
   localtime_r(&curr_time, &t);
+  FILE_CHECK(JSON_PATH);
 
   STUDENT_DATA data_;
   data_.id = 0;
@@ -248,9 +253,44 @@ inline STUDENT_DATA getSpecificStudentData(int id)
     if (studentData_["studentNumber"].asInt() == id)
     {
       data_.id = id;
-      data_.name = studentData_["studentName"].asCString();
+      data_.name = studentData_["studentName"].asString();
       data_.checked = studentData_["checked"].asBool();
-      data_.time = studentData_["checked_time"].asInt();
+      data_.time = studentData_["checked_time"].asString();
+      break;
+    }
+  }
+  
+  return data_;
+}
+/********************************/
+/* getSpecificStudentDataOfDate */
+/********************************/
+inline STUDENT_DATA getSpecificStudentDataOfDate(std::string date, int id)
+{
+  struct tm t;
+  time_t curr_time = time(nullptr);
+  localtime_r(&curr_time, &t);
+  FILE_CHECK(JSON_PATH);
+
+  STUDENT_DATA data_;
+  data_.id = 0;
+  data_.name = "";
+  data_.checked = false;
+
+  std::ifstream json_file(JSON_PATH_DATE(date), std::ifstream::binary);
+
+  Json::Value root;
+  json_file >> root;
+  json_file.close();
+
+  for (const Json::Value& studentData_ : root["studentData"])
+  {
+    if (studentData_["studentNumber"].asInt() == id)
+    {
+      data_.id = id;
+      data_.name = studentData_["studentName"].asString();
+      data_.checked = studentData_["checked"].asBool();
+      data_.time = studentData_["checked_time"].asString();
       break;
     }
   }
@@ -266,6 +306,7 @@ inline std::vector<STUDENT_DATA> getStudentsData()
   struct tm t;
   time_t curr_time = time(nullptr);
   localtime_r(&curr_time, &t);
+  FILE_CHECK(JSON_PATH);
 
   std::vector<STUDENT_DATA> data_v;
   STUDENT_DATA data_;
@@ -275,16 +316,83 @@ inline std::vector<STUDENT_DATA> getStudentsData()
   Json::Value root;
   json_file >> root;
   json_file.close();
-
   for (const Json::Value& studentData_ : root["studentData"])
   {
     data_.id = studentData_["studentNumber"].asInt();
-    data_.name = studentData_["studentName"].asCString();
+    data_.name = studentData_["studentName"].asString();
     data_.checked = studentData_["checked"].asBool();
-    data_.time = studentData_["checked_time"].asInt();
+    data_.time = studentData_["checked_time"].asString();
     data_v.push_back(data_);
   }
 
   return data_v;
 }
 
+/*************************/
+/* getStudentsDataOfDate */
+/*************************/
+inline std::vector<STUDENT_DATA> getStudentsDataOfDate(std::string date)
+{
+  struct tm t;
+  time_t curr_time = time(nullptr);
+  localtime_r(&curr_time, &t);
+  FILE_CHECK(JSON_PATH);
+
+  std::vector<STUDENT_DATA> data_v;
+  STUDENT_DATA data_;
+
+  std::ifstream json_file(JSON_PATH_DATE(date), std::ifstream::binary);
+
+  Json::Value root;
+  json_file >> root;
+  json_file.close();
+  for (const Json::Value& studentData_ : root["studentData"])
+  {
+    data_.id = studentData_["studentNumber"].asInt();
+    data_.name = studentData_["studentName"].asString();
+    data_.checked = studentData_["checked"].asBool();
+    data_.time = studentData_["checked_time"].asString();
+    data_v.push_back(data_);
+  }
+
+  return data_v;
+}
+
+inline int deleteStudentData(int id)
+{
+  struct tm t;
+  time_t curr_time = time(nullptr);
+  localtime_r(&curr_time, &t);
+  FILE_CHECK(JSON_PATH);
+
+  std::ifstream json_file(JSON_PATH, std::ifstream::binary);
+
+  Json::Value root;
+  json_file >> root;
+  json_file.close();
+  Json::Value& studentData = root["studentData"];
+
+  bool flag = true;
+  for (int i = 0; i < studentData.size(); i++)
+  {
+    if (studentData[i]["studentNumber"].asInt() == id)
+    {
+      studentData.removeIndex(i, nullptr);
+      flag = false;
+      break;
+    }
+  }
+
+  std::ofstream o_json_file(JSON_PATH, std::ofstream::binary);
+  o_json_file << root;
+  o_json_file.close();
+
+  Json::StreamWriterBuilder builder;
+	builder["commentStyle"] = "None";
+	builder["indentation"] = "    ";
+  std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+
+  writer->write(root, &o_json_file);
+
+  return flag;
+}

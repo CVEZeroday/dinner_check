@@ -1,0 +1,10 @@
+*.o
+*.so
+.git/*
+.cmake/*
+Dinner_Checker.egg-info
+build/*
+data/*
+dist/*
+dinnerchecker*
+dinner_checker*
