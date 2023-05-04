@@ -30,8 +30,8 @@
 #define JSON_PATH_BACKUP ("./data/backup_student_dinner_data.json")
 #endif
 
-#define FILE_CHECK(path) \
-std::ifstream __file(path); \
+#define FILE_CHECK() \
+std::ifstream __file(JSON_PATH); \
 if (!__file.good()) \
 { \
   initializeJsonFile(); \
@@ -122,7 +122,7 @@ inline int saveStudentData(int id, const std::string& name, bool checked)
   struct tm t;
   time_t curr_time = time(nullptr);
   localtime_r(&curr_time, &t);
-  FILE_CHECK(JSON_PATH);
+  FILE_CHECK();
 
   std::ifstream i_json_file(JSON_PATH);
 
@@ -167,7 +167,7 @@ inline int uncheckStudent(int id)
   struct tm t;
   time_t curr_time = time(nullptr);
   localtime_r(&curr_time, &t);
-  FILE_CHECK(JSON_PATH);
+  FILE_CHECK();
 
   STUDENT_DATA data_;
   data_.id = 0;
@@ -219,7 +219,7 @@ inline int checkStudent(int id)
   struct tm t;
   time_t curr_time = time(nullptr);
   localtime_r(&curr_time, &t);
-  FILE_CHECK(JSON_PATH);
+  FILE_CHECK();
 
   std::ifstream i_json_file(JSON_PATH);
 
@@ -266,10 +266,10 @@ inline STUDENT_DATA getSpecificStudentData(int id)
   struct tm t;
   time_t curr_time = time(nullptr);
   localtime_r(&curr_time, &t);
-  FILE_CHECK(JSON_PATH);
+  FILE_CHECK();
 
   STUDENT_DATA data_;
-  data_.id = 0;
+  data_.id = -1;
   data_.name = "";
   data_.checked = false;
 
@@ -301,14 +301,17 @@ inline STUDENT_DATA getSpecificStudentDataOfDate(std::string date, int id)
   struct tm t;
   time_t curr_time = time(nullptr);
   localtime_r(&curr_time, &t);
-  FILE_CHECK(JSON_PATH);
 
   STUDENT_DATA data_;
-  data_.id = 0;
+  data_.id = -1;
   data_.name = "";
   data_.checked = false;
 
   std::ifstream json_file(JSON_PATH_DATE(date), std::ifstream::binary);
+  if (!json_file.good())
+  {
+    return data_;
+  }
 
   Json::Value root;
   json_file >> root;
@@ -337,7 +340,7 @@ inline std::vector<STUDENT_DATA> getStudentsData()
   struct tm t;
   time_t curr_time = time(nullptr);
   localtime_r(&curr_time, &t);
-  FILE_CHECK(JSON_PATH);
+  FILE_CHECK();
 
   std::vector<STUDENT_DATA> data_v;
   STUDENT_DATA data_;
@@ -367,12 +370,12 @@ inline std::vector<STUDENT_DATA> getStudentsDataOfDate(std::string date)
   struct tm t;
   time_t curr_time = time(nullptr);
   localtime_r(&curr_time, &t);
-  FILE_CHECK(JSON_PATH);
 
   std::vector<STUDENT_DATA> data_v;
   STUDENT_DATA data_;
 
   std::ifstream json_file(JSON_PATH_DATE(date), std::ifstream::binary);
+  if (!json_file.good()) return std::vector<STUDENT_DATA>();
 
   Json::Value root;
   json_file >> root;
@@ -394,7 +397,7 @@ inline int deleteStudentData(int id)
   struct tm t;
   time_t curr_time = time(nullptr);
   localtime_r(&curr_time, &t);
-  FILE_CHECK(JSON_PATH);
+  FILE_CHECK();
 
   std::ifstream json_file(JSON_PATH, std::ifstream::binary);
 

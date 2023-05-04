@@ -159,9 +159,9 @@ static PyMethodDef myMethods[] = {
   {"uncheckStudent", py_uncheckStudent, METH_VARARGS, "Uncheck the Student.\ninput: (int student_number)\noutput: 0 if executed normally, 1 if there is no matching student"},
   {"checkStudent", py_checkStudent, METH_VARARGS, "Check the Student.\ninput: (int student_number)\noutput: 0 if executed normally, 1 if there is no matching student"},
   {"getSpecificStudentData", py_getSpecificStudentData, METH_VARARGS, "Get the Data of Specific Student.\ninput: (int student_number)\noutput: Dictionary { \"studentNumber\":student_number, \"name\":student_name, \"isChecked\":student_is_checked }"},
-  {"getSpecificStudentDataOfDate", py_getSpecificStudentDataOfDate, METH_VARARGS, "Get the Data of Specific Student of Specific Date.\ninput: (str date, int student_number)\noutput: Dictionary { \"studentNumber\":student_number, \"name\":student_name, \"isChecked\":student_is_checked }"},
+  {"getSpecificStudentDataOfDate", py_getSpecificStudentDataOfDate, METH_VARARGS, "Get the Data of Specific Student of Specific Date.\ninput: (str date, int student_number)\noutput: Dictionary { \"studentNumber\":student_number, \"name\":student_name, \"isChecked\":student_is_checked }. If there is no data of the date, It'll return a dictionary whose student number is -1."},
   {"getStudentsData", py_getStudentsData, METH_NOARGS, "Get the Data of All Students.\ninput: none\noutput: List of Dictionary { \"studentNumber\":student_number, \"name\":student_name, \"isChecked\":student_is_checked }"},
-  {"getStudentsDataOfDate", py_getStudentsDataOfDate, METH_VARARGS, "Get the Data of All Students of Specific Date.\ninput: (str date)\noutput: List of Dictionary {\"studentNumber\":student_number, \"name\":student_name, \"isChecked\":student_is_checked }"},
+  {"getStudentsDataOfDate", py_getStudentsDataOfDate, METH_VARARGS, "Get the Data of All Students of Specific Date.\ninput: (str date)\noutput: List of Dictionary {\"studentNumber\":student_number, \"name\":student_name, \"isChecked\":student_is_checked }. If there is no data of the date, It'll return an empty list."},
   {"deleteStudentData", py_deleteStudentData, METH_VARARGS, "Delete the Data of Specific Student.\ninput: (int student_number)\noutput: 0 if executed normally, 1 if there is no matching student"},
   {NULL, NULL, 0, NULL}
 };
