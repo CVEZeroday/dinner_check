@@ -1,4 +1,14 @@
-#include <iostream>
+/********************************************/
+/* This source code is part of Dinner_Check */
+/********************************************/
+/*     Copyrights (C) 2023 CVE_zeroday.     */
+/*          All rights reserved.            */
+/********************************************/
+/*           File Name: main.h              */
+/*   Created by CVE_zeroday on 05.02.2023   */
+/*               (T.Y.Kim)                  */
+/********************************************/
+
 #include <fstream>
 #include <ctime>
 
@@ -36,6 +46,18 @@ typedef struct STUDENT_DATA
 } STUDENT_DATA;
 // 9 Bytes
 
+/*
+typedef struct API_INFO
+{
+  const std::string version = DINNER_CHECKER_API_VERSION;
+  int studentCount;
+  std::string firstDate;
+} API_INFO;
+*/
+
+/**********************/
+/* initializeJsonFile */
+/**********************/
 inline int initializeJsonFile()
 {
   Json::Value root;
@@ -92,6 +114,9 @@ inline int initializeJsonFile()
   return 0;
 }
 
+/*******************/
+/* saveStudentData */
+/*******************/
 inline int saveStudentData(int id, const std::string& name, bool checked)
 {
   struct tm t;
@@ -134,6 +159,9 @@ inline int saveStudentData(int id, const std::string& name, bool checked)
   return 0;
 }
 
+/******************/
+/* uncheckStudent */
+/******************/
 inline int uncheckStudent(int id)
 {
   struct tm t;
@@ -178,6 +206,9 @@ inline int uncheckStudent(int id)
   return flag;
 }
 
+/****************/
+/* checkStudent */
+/****************/
 inline int checkStudent(int id)
 {
   STUDENT_DATA data_;

@@ -1,3 +1,14 @@
+/********************************************/
+/* This source code is part of Dinner_Check */
+/********************************************/
+/*     Copyrights (C) 2023 CVE_zeroday.     */
+/*          All rights reserved.            */
+/********************************************/
+/*            File Name: py.cc              */
+/*   Created by CVE_zeroday on 05.02.2023   */
+/*               (T.Y.Kim)                  */
+/********************************************/
+
 #include "json/json.h"
 #include <python3.11/Python.h>
 //#include <Python.h>
