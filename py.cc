@@ -76,6 +76,7 @@ static PyObject* py_getSpecificStudentDataOfDate(PyObject* self, PyObject* args)
   PyDict_SetItemString(dict, "studentNumber", PyLong_FromLong(result.id));
   PyDict_SetItemString(dict, "name", PyUnicode_FromString(result.name.c_str()));
   PyDict_SetItemString(dict, "isChecked", result.checked ? Py_True : Py_False);
+  PyDict_SetItemString(dict, "date", PyUnicode_FromString(result.time.c_str()));
 
   return dict;
 }
@@ -94,6 +95,7 @@ static PyObject* py_getSpecificStudentData(PyObject* self, PyObject* args)
   PyDict_SetItemString(dict, "studentNumber", PyLong_FromLong(result.id));
   PyDict_SetItemString(dict, "name", PyUnicode_FromString(result.name.c_str()));
   PyDict_SetItemString(dict, "isChecked", result.checked ? Py_True : Py_False);
+  PyDict_SetItemString(dict, "date", PyUnicode_FromString(result.time.c_str()));
 
   return dict;
 }
@@ -111,6 +113,7 @@ static PyObject* py_getStudentsData(PyObject* self, PyObject* args)
     PyDict_SetItemString(dict, "studentNumber", PyLong_FromLong(result.id));
     PyDict_SetItemString(dict, "name", PyUnicode_FromString(result.name.c_str()));
     PyDict_SetItemString(dict, "isChecked", result.checked ? Py_True : Py_False);
+    PyDict_SetItemString(dict, "date", PyUnicode_FromString(result.time.c_str()));
     PyList_SetItem(list, i, dict);
   }
 
@@ -135,6 +138,7 @@ static PyObject* py_getStudentsDataOfDate(PyObject* self, PyObject* args)
     PyDict_SetItemString(dict, "studentNumber", PyLong_FromLong(result.id));
     PyDict_SetItemString(dict, "name", PyUnicode_FromString(result.name.c_str()));
     PyDict_SetItemString(dict, "isChecked", result.checked ? Py_True : Py_False);
+    PyDict_SetItemString(dict, "date", PyUnicode_FromString(result.time.c_str()));
     PyList_SetItem(list, i, dict);
   }
 

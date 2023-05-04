@@ -55,6 +55,17 @@ typedef struct API_INFO
 } API_INFO;
 */
 
+inline int initializeJsonFile();
+inline int saveStudentData(int id, const std::string& name, bool checked);
+inline int uncheckStudent(int id);
+inline int checkStudent(int id);
+inline STUDENT_DATA getSpecificStudentData(int id);
+inline STUDENT_DATA getSpecificStudentDataOfDate(std::string date, int id);
+inline std::vector<STUDENT_DATA> getStudentsData();
+inline std::vector<STUDENT_DATA> getStudentsDataOfDate(std::string date);
+inline int deleteStudentData(int id);
+
+
 /**********************/
 /* initializeJsonFile */
 /**********************/
