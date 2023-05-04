@@ -234,11 +234,11 @@ inline int checkStudent(int id)
     {
       studentData_["checked"] = true;
       studentData_["checked_time"] = std::to_string(t.tm_year + 1900) + "-"
-                                  + std::to_string(t.tm_mon + 1) + "-"
-                                  + std::to_string(t.tm_mday) + " "
-                                  + std::to_string(t.tm_hour) + ":"
-                                  + std::to_string(t.tm_min) + ":"
-                                  + std::to_string(t.tm_sec);
+                                  + FORMAT_DATE(t.tm_mon + 1) + "-"
+                                  + FORMAT_DATE(t.tm_mday) + " "
+                                  + FORMAT_DATE(t.tm_hour) + ":"
+                                  + FORMAT_DATE(t.tm_min) + ":"
+                                  + FORMAT_DATE(t.tm_sec);
       flag = false;
       break;
     }
