@@ -4,7 +4,7 @@ rm -rf ./dist
 rm -rf ./build
 rm dinnerchecker.cpython*
 mkdir data
-echo "Compiling..."
-python3 setup.py build_ext --inplace
+#echo "Compiling..."
+#python3 setup.py build_ext --inplace
 echo "Installing..."
 python3 setup.py install
