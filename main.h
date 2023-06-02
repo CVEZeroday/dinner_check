@@ -11,10 +11,11 @@
 
 #include <fstream>
 #include <ctime>
+#include <iostream>
 
 #include "json/json.h"
 
-#define DINNER_CHECKER_API_VERSION "0.1"
+#define DINNER_CHECKER_API_VERSION "0.3"
 
 #define FORMAT_DATE(n) (n < 10 ? "0"+std::to_string(n) : std::to_string(n))
 #define DATE (std::to_string(t.tm_year+1900)+FORMAT_DATE(t.tm_mon+1)+FORMAT_DATE(t.tm_mday))
@@ -24,18 +25,18 @@
 #define JSON_PATH_DATE(date_) (".\\data\\" + date_ + "_student_dinner_data.json")
 #define JSON_PATH_BACKUP (".\\data\\backup_student_dinner_data.json")
 #endif
-#ifdef linux
 #define JSON_PATH ("./data/" + DATE + "_student_dinner_data.json")
 #define JSON_PATH_DATE(date_) ("./data/" + date_ + "_student_dinner_data.json")
 #define JSON_PATH_BACKUP ("./data/backup_student_dinner_data.json")
-#endif
 
+/*
 #define FILE_CHECK() \
 std::ifstream __file(JSON_PATH); \
 if (!__file.good()) \
 { \
   initializeJsonFile(); \
 }
+*/
 
 typedef struct STUDENT_DATA
 {
@@ -64,7 +65,36 @@ inline STUDENT_DATA getSpecificStudentDataOfDate(std::string date, int id);
 inline std::vector<STUDENT_DATA> getStudentsData();
 inline std::vector<STUDENT_DATA> getStudentsDataOfDate(std::string date);
 inline int deleteStudentData(int id);
+inline int backupJsonFile();
 
+/**********************/
+/* backupJsonFile */
+/**********************/
+inline int backupJsonFile()
+{
+  struct tm t;
+  time_t curr_time = time(nullptr);
+  localtime_r(&curr_time, &t);
+
+  std::ifstream i_json_file(JSON_PATH);
+
+  Json::Value root;
+  i_json_file >> root;
+  i_json_file.close();
+
+  Json::StreamWriterBuilder o_builder;
+	o_builder["commentStyle"] = "None";
+	o_builder["indentation"] = "    ";
+  std::unique_ptr<Json::StreamWriter> writer(o_builder.newStreamWriter());
+
+  std::ofstream o_json_file_backup;
+  o_json_file_backup.open(JSON_PATH_BACKUP);
+  writer->write(root["studentData"], &o_json_file_backup);
+  o_json_file_backup.close();
+
+  std::cout << "backed up json file\n";
+  return 0;
+}
 
 /**********************/
 /* initializeJsonFile */
@@ -74,6 +104,7 @@ inline int initializeJsonFile()
   Json::Value root;
   Json::Value headerData;
   Json::Value studentData;
+  bool noBackupFlag = false;
  
   struct tm t;
   time_t curr_time = time(nullptr);
@@ -97,19 +128,29 @@ inline int initializeJsonFile()
   headerData["version"] = DINNER_CHECKER_API_VERSION;
   root["headerData"] = headerData;
   root["studentData"] = Json::arrayValue;
-
+  
   try
   {
     std::ifstream i_json_file(JSON_PATH_BACKUP);
     i_json_file >> studentData;
     i_json_file.close();
 
-    for (Json::Value& studentData_ : root["studentData"])
+    /*
+    for (Json::Value& studentData_ : studentData)
     {
       studentData_["checked"] = false;
       studentData_["checked_time"] = "";
-    }
-  } catch(std::exception err) {}
+    }*/
+  }
+  catch(std::exception const& err)
+  {
+    noBackupFlag = true;
+  }
+  
+  if (!noBackupFlag)
+  {
+    root["studentData"] = studentData;
+  }
 
   Json::StreamWriterBuilder o_builder;
 	o_builder["commentStyle"] = "None";
@@ -121,6 +162,10 @@ inline int initializeJsonFile()
 
   writer->write(root, &o_json_file);
   o_json_file.close();
+  std::cout << "json file initialized\n";
+
+  backupJsonFile();
+  if (noBackupFlag) return 1;
 
   return 0;
 }
@@ -133,7 +178,7 @@ inline int saveStudentData(int id, const std::string& name, bool checked)
   struct tm t;
   time_t curr_time = time(nullptr);
   localtime_r(&curr_time, &t);
-  FILE_CHECK();
+  //FILE_CHECK();
 
   std::ifstream i_json_file(JSON_PATH);
 
@@ -146,7 +191,9 @@ inline int saveStudentData(int id, const std::string& name, bool checked)
   Json::Value newStudent;
   newStudent["studentNumber"] = id;
   newStudent["studentName"] = name;
-  newStudent["checked"] = checked;
+  //newStudent["checked"] = checked;
+  newStudent["checked"] = false;
+  // checked value is forced to set "false" since it wastes resourceses
   newStudent["checked_time"] = "";
   
   studentData.append(newStudent);
@@ -161,12 +208,10 @@ inline int saveStudentData(int id, const std::string& name, bool checked)
 
   writer->write(root, &o_json_file);
   o_json_file.close();
+  
+  std::cout << "student data saved\nid: " << id << "\nname: " << name << "\nchecked: " << checked << "\n";
 
-  std::ofstream o_json_file_backup;
-  o_json_file_backup.open(JSON_PATH_BACKUP);
-  writer->write(root["studentData"], &o_json_file_backup);
-  o_json_file_backup.close();
-
+  backupJsonFile();
   return 0;
 }
 
@@ -178,7 +223,7 @@ inline int uncheckStudent(int id)
   struct tm t;
   time_t curr_time = time(nullptr);
   localtime_r(&curr_time, &t);
-  FILE_CHECK();
+  //FILE_CHECK();
 
   STUDENT_DATA data_;
   data_.id = 0;
@@ -214,6 +259,7 @@ inline int uncheckStudent(int id)
 
   writer->write(root, &o_json_file);
 
+  std::cout << "student unchecked: " << id << "\n";
   return flag;
 }
 
@@ -230,7 +276,7 @@ inline int checkStudent(int id)
   struct tm t;
   time_t curr_time = time(nullptr);
   localtime_r(&curr_time, &t);
-  FILE_CHECK();
+  //FILE_CHECK();
 
   std::ifstream i_json_file(JSON_PATH);
 
@@ -266,6 +312,7 @@ inline int checkStudent(int id)
 
   writer->write(root, &o_json_file);
 
+  std::cout << "student checked: " << id << "\n";
   return flag;
 }
 
@@ -277,7 +324,7 @@ inline STUDENT_DATA getSpecificStudentData(int id)
   struct tm t;
   time_t curr_time = time(nullptr);
   localtime_r(&curr_time, &t);
-  FILE_CHECK();
+  //FILE_CHECK();
 
   STUDENT_DATA data_;
   data_.id = -1;
@@ -351,7 +398,7 @@ inline std::vector<STUDENT_DATA> getStudentsData()
   struct tm t;
   time_t curr_time = time(nullptr);
   localtime_r(&curr_time, &t);
-  FILE_CHECK();
+  //FILE_CHECK();
 
   std::vector<STUDENT_DATA> data_v;
   STUDENT_DATA data_;
@@ -408,7 +455,7 @@ inline int deleteStudentData(int id)
   struct tm t;
   time_t curr_time = time(nullptr);
   localtime_r(&curr_time, &t);
-  FILE_CHECK();
+  //FILE_CHECK();
 
   std::ifstream json_file(JSON_PATH, std::ifstream::binary);
 
@@ -418,7 +465,7 @@ inline int deleteStudentData(int id)
   Json::Value& studentData = root["studentData"];
 
   bool flag = true;
-  for (int i = 0; i < studentData.size(); i++)
+  for (unsigned int i = 0; i < studentData.size(); i++)
   {
     if (studentData[i]["studentNumber"].asInt() == id)
     {

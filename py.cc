@@ -10,10 +10,51 @@
 /********************************************/
 
 #include "json/json.h"
-#include <python3.11/Python.h>
-//#include <Python.h>
+// external library headers
+
+//#include <python3.11/Python.h>
+#include <python3.10/Python.h>
+#include <memory>
+#include <iostream>
+#include <ctime>
+#include <chrono>
+#include <thread>
+// system headers
 
 #include "main.h"
+// project headers
+
+void thrd_initTimer()
+{
+  std::cout << "timer thread initialized!\n";
+  while(1)
+  {
+    std::time_t now = std::time(nullptr);
+    std::tm* currentTime = std::localtime(&now);
+
+    std::tm scheduledTime = *currentTime;
+    scheduledTime.tm_hour = 0;
+    scheduledTime.tm_min = 0;
+    scheduledTime.tm_sec = 0;
+
+    std::time_t scheduledTimestamp = std::mktime(&scheduledTime);
+    std::time_t nextDayTimestamp = scheduledTimestamp + 24 * 60 * 60;
+    int remainingTime = nextDayTimestamp - now;
+
+    std::this_thread::sleep_for(std::chrono::seconds(remainingTime));
+
+    initializeJsonFile();
+  }
+}
+
+__attribute__((constructor)) void init()
+{
+  std::cout << "dinnerchecker library loaded successfully\n";
+  initializeJsonFile();
+  std::cout << "initializing timer thread...\n";
+  std::thread timerThread(thrd_initTimer);
+  timerThread.detach();
+}
 
 static PyObject* py_initializeJsonFile(PyObject* self, PyObject* args)
 {
