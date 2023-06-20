@@ -8,3 +8,12 @@ data/*
 dist/*
 dinnerchecker*
 dinner_checker*
+app/__pycache__/*
+app/data/*
+app/log/*
+app_qr/__pycache__/*
+app_qr/data/*
+app_qr/log/*
+app_test/__pycache__/*
+app_test/data/*
+app_test/log/*

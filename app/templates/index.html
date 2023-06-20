@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>출석 페이지</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="module">
+      import QrScanner from 'https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.min.js';
+
+      QrScanner.WORKER_PATH = 'https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner-worker.min.js';
+
+      window.addEventListener("keydown", (e) =>
+      {
+      document.input_form.student_number.focus();
+      });
+     
+
+    const animateCSS = (element, animation, prefix = 'animate__') =>
+   // We create a Promise and return it
+   new Promise((resolve, reject) => {
+      const animationName = `${prefix}${animation}`;
+      const node = document.querySelector(element);
+
+      node.classList.add(`${prefix}animated`, animationName);
+
+      // When the animation ends, we clean the classes and resolve the Promise
+      function handleAnimationEnd(event) {
+         event.stopPropagation();
+         node.classList.remove(`${prefix}animated`, animationName);
+         resolve('Animation ended');
+      }
+
+      node.addEventListener('animationend', handleAnimationEnd, { once: true });
+   });
+
+    let lastSubmitTime = 0;
+    const submitInterval = 750;
+    $('#input_form').on('submit', function(event) {
+            event.preventDefault();
+
+            const currentTime = new Date().getTime();
+            if (currentTime - lastSubmitTime < submitInterval) {
+              return;
+            }
+            lastSubmitTime = currentTime;
+
+            $.ajax({
+                url: '/studentp',
+                data: { 'student_number': $('#student_number').val() },
+                type: 'POST',
+                success: function(response) {
+                    $('#return-str-id').text(response.str);
+                    const returnNum = parseInt(response.num, 10);
+                    if (returnNum == -1) animateCSS('#return-str-id', 'shakeX');
+                    else animateCSS('#return-str-id', 'pulse');
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+        });
+      const videoElement = document.getElementById('qr-video');
+      const qrScanner = new QrScanner(videoElement, (result) => {
+        console.log('QR code data:', result);
+
+            const currentTime = new Date().getTime();
+            if (currentTime - lastSubmitTime < submitInterval) {
+              return;
+            }
+            lastSubmitTime = currentTime;
+
+            $.ajax({
+                url: '/studentp',
+                data: { 'student_number': result.data.toString().split('-')[0] },
+                type: 'POST',
+                success: function(response) {
+                    $('#return-str-id').text(response.str);
+                    const returnNum = parseInt(response.num, 10);
+                    if (returnNum == -1) animateCSS('#return-str-id', 'shakeX');
+                    else animateCSS('#return-str-id', 'pulse');
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+        
+      },
+      {returnDetailedScanResult: true},  
+      );
+      console.log('QR Camera Avail: ', QrScanner.hasCamera());
+      console.log('QR Camera List: ', QrScanner.listCameras());
+
+      qrScanner.start();
+    </script>
+    <style>
+    @font-face {
+    font-family: 'NanumSquare';
+    font-weight: 400;
+    src : url(./fonts/NanumSquareNeoTTF-bRg.eot);
+    src : url(./fonts/NanumSquareNeoTTF-bRg.eot?#iefix) format('embedded-opentype'), 
+    url(./fonts/NanumSquareNeoTTF-bRg.woff) format('woff'),
+    url(./fonts/NanumSquareNeoTTF-bRg.woff2) format('woff2'),
+    url(./fonts/NanumSquareNeo-bRg.ttf) format('truetype');
+    }
+    
+    body {
+    font-family : 'NanumSquare';
+    padding: 100px;
+    }
+    
+    .wrapper {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    position:absolute;
+    height:450px;
+    width:1200px;
+    margin:-250px 0px 0px -600px;
+    top: 50%;
+    left: 50%;
+    padding: 5px;
+    }
+
+    form {
+    width: 300px;
+    margin: 0 auto;
+    text-align: center;
+    display: flex;
+    }
+
+    input[type="number"], input[type="text"] {
+    position: relative;
+    left: -30px;
+    width: 300px;
+    height: 50px;
+    padding: 5px;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: 3px solid #bd93f9;
+    font-size: 32px;
+    outline: none;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    }
+    
+    input[type="submit"] {
+    position: relative;
+    left: -30px;
+    width: 130px;
+    height: 63px;
+    padding: 20px;
+    background-color: #bd93f9;
+    color: #f8f8f2;
+    border: none;
+    font-size: 28px;
+    text-shadow: 2px 2px 4px #282a36;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    }
+
+    input[type="submit"]:hover {
+    background-color: #D9B9FF;
+    }
+
+
+    #return-str-id {
+    text-align:center;
+    width:1200px;
+    background-color:#44475a;
+    color:#f8f8f2;
+    padding: 18px;
+    border-top: 1px solid #bd93f9;
+    border-left: none;
+    border-right: none;
+    border-bottom: 1px solid #bd93f9;
+    background-image: linear-gradient(to right, #282a36 0%, #44475a 10% 90%, #282a36 100%);
+    }
+    </style>
+  </head>
+  <body onload="document.input_form.student_number.focus();" bgcolor="#282a36">
+      <script>
+    function numberMaxLength(e)
+    {
+      if (e.value.length > e.maxLength) {
+        e.value = e.value.slice(0, e.maxLength);
+    }
+    }
+    </script>
+    <div class="wrapper">
+       <video id="qr-video" width="516" height="387" style="display: block; margin: 0 auto;" muted autoplay playsinline></video>
+
+      <div style="text-align:center">
+        <h1 style="color:#ff79c6; font-size: 48px;">석식 출석 체크하기</h1>
+        <h2 style="color:#f8f8f2">학번 다섯자리 (예: 30000) 를 입력한 뒤 엔터키를 눌러주세요.<br/>혹은 카메라 중앙에 QR코드를 위치시켜주세요.<br/></h2>
+      </div>
+
+      <form id="input_form" name="input_form">
+        <input style="text-align:center" type='number' id='student_number' name='student_number' maxlength="5" oninput='numberMaxLength(this);'>
+        <input type="submit" value="↵">
+      </form>
+
+      <br/>
+      <h1 id="return-str-id"> >   학번을 입력해주세요.   < </h1>
+
+    </div>
+  </body>
+
+</html>

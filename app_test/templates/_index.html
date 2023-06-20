@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>출석 페이지</title>
+    <script type="module">
+      import QrScanner from 'https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.min.js';
+
+      QrScanner.WORKER_PATH = 'https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner-worker.min.js';
+
+      window.addEventListener("keydown", (e) =>
+      {
+      document.input_form.student_number.focus();
+      });
+      
+      const videoElement = document.getElementById('qr-video');
+      const qrScanner = new QrScanner(videoElement, (result) => {
+        console.log('QR code data:', result);
+
+        document.input_form.student_number.value = result.split("-")[0];
+        document.input_form.submit();
+      });
+      console.log('QR Camera Avail: ', QrScanner.hasCamera());
+      console.log('QR Camera List: ', QrScanner.listCameras());
+
+      qrScanner.start();
+    </script>
+    <style>
+    @font-face {
+    font-family: 'NanumSquare';
+    font-weight: 400;
+    src : url(./fonts/NanumSquareNeoTTF-bRg.eot);
+    src : url(./fonts/NanumSquareNeoTTF-bRg.eot?#iefix) format('embedded-opentype'), 
+    url(./fonts/NanumSquareNeoTTF-bRg.woff) format('woff'),
+    url(./fonts/NanumSquareNeoTTF-bRg.woff2) format('woff2'),
+    url(./fonts/NanumSquareNeo-bRg.ttf) format('truetype');
+    }
+    
+    body {
+    font-family : 'NanumSquare'
+    }
+
+    form {
+    width: 300px;
+    margin: 0 auto;
+    text-align: center;
+    display: flex;
+    }
+
+    input[type="number"], input[type="text"] {
+    position: relative;
+    left: -30px;
+    width: 300px;
+    height: 50px;
+    padding: 5px;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: 3px solid #bd93f9;
+    font-size: 32px;
+    outline: none;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    }
+    
+    input[type="submit"] {
+    position: relative;
+    left: -30px;
+    width: 130px;
+    height: 63px;
+    padding: 20px;
+    background-color: #bd93f9;
+    color: #f8f8f2;
+    border: none;
+    font-size: 28px;
+    text-shadow: 2px 2px 4px #282a36;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    }
+
+    input[type="submit"]:hover {
+    background-color: #D9B9FF;
+    }
+
+    #divPosition {
+    position:absolute;
+    height:450px;
+    width:1200px;
+    margin:-250px 0px 0px -600px;
+    top: 50%;
+    left: 50%;
+    padding: 5px;
+    }
+
+    .return-str-class {
+    text-align:center;
+    width:1200px;
+    background-color:#44475a;
+    color:#f8f8f2;
+    padding: 18px;
+    border-top: 1px solid #bd93f9;
+    border-left: none;
+    border-right: none;
+    border-bottom: 1px solid #bd93f9;
+    background-image: linear-gradient(to right, #282a36 0%, #44475a 10% 90%, #282a36 100%);
+    }
+    </style>
+  </head>
+  <body onload="document.input_form.student_number.focus();" bgcolor="#282a36">
+    <div id="divPosition">
+       <video id="qr-video" width="600" height="400" muted autoplay playsinline></video>
+
+      <div style="text-align:center">
+        <h1 style="color:#ff79c6; font-size: 48px;">석식 출석 체크하기</h1>
+        <h2 style="color:#f8f8f2">학번 다섯자리 (예: 30000) 를 입력한 뒤 엔터키를 눌러주세요.<br/><br/></h2>
+      </div>
+
+      <form name="input_form" method="POST" action="/studentp">
+        <input style="text-align:center" type='number' id='student_number' name='student_number'>
+        <input type="submit" value="↵">
+      </form>
+
+      <br/>
+      <h1 class="return-str-class"> >   {{ str }}   < </h1>
+
+    </div>
+  </body>
+
+</html>
