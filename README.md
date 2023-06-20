@@ -5,7 +5,17 @@ This program is for byeongjeom highschool
 1. 이 프로그램은 리눅스에서 테스트되었습니다. 모든 코드는 윈도우에서 작동하도록 짜여졌으나, 설정 파일은 리눅스에 맞춰져 있기에 윈도우에서 사용하기 위해서는 윈도우에 맞는 설정 파일을 구성해야 합니다.
 2. app 폴더의 내용은 실사용을 위한 flask 프로그램 폴더이고, app_qr 폴더는 qrcode 생성기 flask 프로그램 폴더, app_test 폴더는 테스트 및 디버깅을 위해 생성한 flask 프로그램 폴더입니다.
 3. app, app_qr, app_test 의 프로그램은 각각 포트 8080, 8081, 8082가 지정되어 있습니다.
-4. 비디오를 이용한 qr코드 인식은 https 에서만 정상적으로 작동합니다. 만약 https 지원이 불가능한 상황이라면 app/templates/index.html 의 <video> 태그를 ```<!-- -->``` 를 이용해 주석문처리해주세요.
+4. 비디오를 이용한 qr코드 인식은 https 에서만 정상적으로 작동합니다. 만약 https 지원이 불가능한 상황이라면 app/templates/index.html 의 ```
+```
+<video id="qr-video" width="516" height="387" style="display: block; margin: 0 auto;" muted autoplay playsinline></video>
+```
+부분을
+```
+<!--
+<video id="qr-video" width="516" height="387" style="display: block; margin: 0 auto;" muted autoplay playsinline></video>
+-->
+```
+와 같이 주석문처리해주세요.
 5. 라이브러리 컴파일시 CPython 헤더 파일의 경로가 달라 오류가 발생할 수 있습니다. 적절한 위치에 있는 Python.h 헤더 파일을 include 해주세요.
 
 ## 설치
