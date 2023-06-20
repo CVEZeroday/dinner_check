@@ -11,4 +11,4 @@ cat $log_file
 
 external_ip=$(curl -s http://checkip.amazonaws.com)
 
-echo " * Running on http://$external_ip:8080"
+echo " * Running on http://$external_ip:8081"
