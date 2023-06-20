@@ -37,15 +37,15 @@ import dinnerchecker
 ## 프로그램 실행
 
 ### 이 과정을 수행하기 위해서는 필요한 파이썬 모듈 및 자체 제작 파이썬 모듈이 설치되어 있어야 합니다.
-'''
+```
 python -m pip install flask waitress chardet
-'''
+```
 
 ### 메인 앱 실행하기
-'''
+```
 ./app/start.sh
 ./app_qr/start.sh
-'''
+```
 
 ## 함수
 
