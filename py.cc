@@ -43,14 +43,14 @@ void thrd_initTimer()
 
     std::this_thread::sleep_for(std::chrono::seconds(remainingTime));
 
-    initializeJsonFile();
+    initializeJsonFile(true);
   }
 }
 
 __attribute__((constructor)) void init()
 {
   std::cout << "dinnerchecker library loaded successfully\n";
-  initializeJsonFile();
+  initializeJsonFile(false);
   std::cout << "initializing timer thread...\n";
   std::thread timerThread(thrd_initTimer);
   timerThread.detach();
@@ -58,7 +58,13 @@ __attribute__((constructor)) void init()
 
 static PyObject* py_initializeJsonFile(PyObject* self, PyObject* args)
 {
-  int result = initializeJsonFile();
+  int result = initializeJsonFile(false);
+
+  return Py_BuildValue("i", result);
+}
+static PyObject* py_resetJsonFile(PyObject* self, PyObject* args)
+{
+  int result = initializeJsonFile(true);
 
   return Py_BuildValue("i", result);
 }
@@ -186,6 +192,7 @@ static PyObject* py_getStudentsDataOfDate(PyObject* self, PyObject* args)
   return list;
 }
 
+/*
 static PyObject* py_deleteStudentData(PyObject* self, PyObject* args)
 {
   int id;
@@ -198,8 +205,17 @@ static PyObject* py_deleteStudentData(PyObject* self, PyObject* args)
   return Py_BuildValue("i", result);
 }
 
+static PyObject* py_deleteAllStudentsData(PyObject* self, PyObject* args)
+{
+  int result = deleteAllStudentsData();
+
+  return Py_BuildValue("i", result);
+}
+*/
+
 static PyMethodDef myMethods[] = {
   {"initializeJsonFile", py_initializeJsonFile, METH_NOARGS, "Initialize the Json File to write.\ninput: none\noutput: 0 (fixed)\nNote: Don't use in normal situation. May cause critical error."},
+  {"resetJsonFile", py_resetJsonFile, METH_NOARGS, "Reset the Json File.\ninput: none\noutput: 0 (fixed)\nNote: Don't use in normal situation. May cause critical error. !!! THIS FUNCTIONS IS FOR DEBUG !!!"},
   {"saveStudentData", py_saveStudentData, METH_VARARGS, "Save Student Data to .json file.\ninput: (int student_number, str student_name, bool student_is_checked)\noutput: 0 (fixed)"},
   {"uncheckStudent", py_uncheckStudent, METH_VARARGS, "Uncheck the Student.\ninput: (int student_number)\noutput: 0 if executed normally, 1 if there is no matching student"},
   {"checkStudent", py_checkStudent, METH_VARARGS, "Check the Student.\ninput: (int student_number)\noutput: 0 if executed normally, 1 if there is no matching student"},
@@ -207,7 +223,8 @@ static PyMethodDef myMethods[] = {
   {"getSpecificStudentDataOfDate", py_getSpecificStudentDataOfDate, METH_VARARGS, "Get the Data of Specific Student of Specific Date.\ninput: (str date, int student_number)\noutput: Dictionary { \"studentNumber\":student_number, \"name\":student_name, \"isChecked\":student_is_checked }. If there is no data of the date, It'll return a dictionary whose student number is -1."},
   {"getStudentsData", py_getStudentsData, METH_NOARGS, "Get the Data of All Students.\ninput: none\noutput: List of Dictionary { \"studentNumber\":student_number, \"name\":student_name, \"isChecked\":student_is_checked }"},
   {"getStudentsDataOfDate", py_getStudentsDataOfDate, METH_VARARGS, "Get the Data of All Students of Specific Date.\ninput: (str date)\noutput: List of Dictionary {\"studentNumber\":student_number, \"name\":student_name, \"isChecked\":student_is_checked }. If there is no data of the date, It'll return an empty list."},
-  {"deleteStudentData", py_deleteStudentData, METH_VARARGS, "Delete the Data of Specific Student.\ninput: (int student_number)\noutput: 0 if executed normally, 1 if there is no matching student"},
+  //{"deleteStudentData", py_deleteStudentData, METH_VARARGS, "Delete the Data of Specific Student.\ninput: (int student_number)\noutput: 0 if executed normally, 1 if there is no matching student"},
+  //{"deleteAllStudentsData", py_deleteAllStudentsData, METH_VARARGS, "Delete the Data of All Students.\ninput: none\noutput: 0 (fixed)"},
   {NULL, NULL, 0, NULL}
 };
 

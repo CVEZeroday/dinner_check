@@ -15,7 +15,7 @@
 
 #include "json/json.h"
 
-#define DINNER_CHECKER_API_VERSION "0.3"
+#define DINNER_CHECKER_API_VERSION "0.5"
 
 #define FORMAT_DATE(n) (n < 10 ? "0"+std::to_string(n) : std::to_string(n))
 #define DATE (std::to_string(t.tm_year+1900)+FORMAT_DATE(t.tm_mon+1)+FORMAT_DATE(t.tm_mday))
@@ -56,6 +56,7 @@ typedef struct API_INFO
 } API_INFO;
 */
 
+inline int backupJsonFile();
 inline int initializeJsonFile();
 inline int saveStudentData(int id, const std::string& name, bool checked);
 inline int uncheckStudent(int id);
@@ -64,8 +65,8 @@ inline STUDENT_DATA getSpecificStudentData(int id);
 inline STUDENT_DATA getSpecificStudentDataOfDate(std::string date, int id);
 inline std::vector<STUDENT_DATA> getStudentsData();
 inline std::vector<STUDENT_DATA> getStudentsDataOfDate(std::string date);
-inline int deleteStudentData(int id);
-inline int backupJsonFile();
+//inline int deleteStudentData(int id);
+//inline int deleteAllStudentsData();
 
 /**********************/
 /* backupJsonFile */
@@ -99,7 +100,7 @@ inline int backupJsonFile()
 /**********************/
 /* initializeJsonFile */
 /**********************/
-inline int initializeJsonFile()
+inline int initializeJsonFile(bool flag)
 {
   Json::Value root;
   Json::Value headerData;
@@ -135,12 +136,14 @@ inline int initializeJsonFile()
     i_json_file >> studentData;
     i_json_file.close();
 
-    /*
-    for (Json::Value& studentData_ : studentData)
+    if(flag) 
     {
-      studentData_["checked"] = false;
-      studentData_["checked_time"] = "";
-    }*/
+      for (Json::Value& studentData_ : studentData)
+      {
+        studentData_["checked"] = false;
+        studentData_["checked_time"] = "";
+      }
+    }
   }
   catch(std::exception const& err)
   {
@@ -193,7 +196,7 @@ inline int saveStudentData(int id, const std::string& name, bool checked)
   newStudent["studentName"] = name;
   //newStudent["checked"] = checked;
   newStudent["checked"] = false;
-  // checked value is forced to set "false" since it wastes resourceses
+  // checked value is forced to set "false"
   newStudent["checked_time"] = "";
   
   studentData.append(newStudent);
@@ -211,7 +214,11 @@ inline int saveStudentData(int id, const std::string& name, bool checked)
   
   std::cout << "student data saved\nid: " << id << "\nname: " << name << "\nchecked: " << checked << "\n";
 
-  backupJsonFile();
+  std::ofstream o_json_file_backup;
+  o_json_file_backup.open(JSON_PATH_BACKUP);
+  writer->write(root["studentData"], &o_json_file_backup);
+  o_json_file_backup.close();
+
   return 0;
 }
 
@@ -260,6 +267,12 @@ inline int uncheckStudent(int id)
   writer->write(root, &o_json_file);
 
   std::cout << "student unchecked: " << id << "\n";
+
+  std::ofstream o_json_file_backup;
+  o_json_file_backup.open(JSON_PATH_BACKUP);
+  writer->write(root["studentData"], &o_json_file_backup);
+  o_json_file_backup.close();
+
   return flag;
 }
 
@@ -313,6 +326,7 @@ inline int checkStudent(int id)
   writer->write(root, &o_json_file);
 
   std::cout << "student checked: " << id << "\n";
+  backupJsonFile();
   return flag;
 }
 
@@ -450,6 +464,7 @@ inline std::vector<STUDENT_DATA> getStudentsDataOfDate(std::string date)
   return data_v;
 }
 
+/* //deprecated
 inline int deleteStudentData(int id)
 {
   struct tm t;
@@ -464,6 +479,11 @@ inline int deleteStudentData(int id)
   json_file.close();
   Json::Value& studentData = root["studentData"];
 
+  std::ifstream json_file_backup(JSON_PATH_BACKUP, std::ifstream::binary);
+  Json::Value studentData_backup;
+  json_file_backup >> studentData_backup;
+  json_file_backup.close();
+
   bool flag = true;
   for (unsigned int i = 0; i < studentData.size(); i++)
   {
@@ -475,9 +495,22 @@ inline int deleteStudentData(int id)
     }
   }
 
+  for (unsigned int i = 0; i < studentData_backup.size(); i++)
+  {
+    if (studentData_backup[i]["studentNumber"].asInt() == id)
+    {
+      studentData_backup.removeIndex(i, nullptr);
+      break;
+    }
+  }
+
   std::ofstream o_json_file(JSON_PATH, std::ofstream::binary);
   o_json_file << root;
   o_json_file.close();
+
+  std::ofstream o_json_file_backup(JSON_PATH_BACKUP, std::ofstream::binary);
+  o_json_file_backup << studentData_backup;
+  o_json_file_backup.close();
 
   Json::StreamWriterBuilder builder;
 	builder["commentStyle"] = "None";
@@ -485,6 +518,53 @@ inline int deleteStudentData(int id)
   std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
 
   writer->write(root, &o_json_file);
+  writer->write(studentData, &o_json_file_backup);
 
   return flag;
 }
+
+inline int deleteAllStudentsData()
+{
+  struct tm t;
+  time_t curr_time = time(nullptr);
+  localtime_r(&curr_time, &t);
+  //FILE_CHECK();
+
+  std::ifstream json_file(JSON_PATH, std::ifstream::binary);
+
+  Json::Value root;
+  json_file >> root;
+  json_file.close();
+  Json::Value& studentData = root["studentData"];
+
+  std::ifstream json_file_backup(JSON_PATH_BACKUP, std::ifstream::binary);
+  Json::Value studentData_backup;
+  json_file_backup >> studentData_backup;
+  json_file_backup.close();
+  
+
+  for (unsigned int i = 0; i < studentData.size(); i++)
+  {
+    studentData.removeIndex(i, nullptr);
+    //studentData_backup.removeIndex(i, nullptr);
+  }
+
+  std::ofstream o_json_file(JSON_PATH, std::ofstream::binary);
+  o_json_file << root;
+  o_json_file.close();
+
+  std::ofstream o_json_file_backup(JSON_PATH_BACKUP, std::ofstream::binary);
+  o_json_file_backup << studentData_backup;
+  o_json_file_backup.close();
+
+  Json::StreamWriterBuilder builder;
+	builder["commentStyle"] = "None";
+	builder["indentation"] = "    ";
+  std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+
+  writer->write(root, &o_json_file);
+  writer->write(studentData, &o_json_file_backup);
+
+  return 0;
+}
+*/
