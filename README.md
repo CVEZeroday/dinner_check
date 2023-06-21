@@ -16,6 +16,7 @@ This program is for byeongjeom highschool
 -->
 ```
 와 같이 주석문처리해주세요.
+
 5. 라이브러리 컴파일시 CPython 헤더 파일의 경로가 달라 오류가 발생할 수 있습니다. 적절한 위치에 있는 Python.h 헤더 파일을 include 해주세요.
 
 ## 설치
