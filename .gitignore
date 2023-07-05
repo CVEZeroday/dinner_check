@@ -10,10 +10,16 @@ dinnerchecker*
 dinner_checker*
 app/__pycache__/*
 app/data/*
+!app/data/.placeholder
 app/log/*
+!app/log/.placeholder
 app_qr/__pycache__/*
 app_qr/data/*
+!app_qr/data/.placeholder
 app_qr/log/*
+!app_qr/log/.placeholder
 app_test/__pycache__/*
 app_test/data/*
+!app_test/data/.placeholder
 app_test/log/*
+!app_test/log/.placeholder
