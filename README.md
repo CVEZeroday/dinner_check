@@ -30,12 +30,12 @@ git clone https://github.com/CVEzeroday/dinner_check.git
 ### 파이썬 모듈 설치하기
 #### Linux
 ```
-cd dinner_check
+cd dinner_check/dinner_check_cpp_library
 ./install.sh
 ```
 #### Windows PowerShell
 ```
-cd dinner_check
+cd dinner_check/dinner_check_cpp_library
 mkdir data
 python setup.py install
 ```
@@ -54,11 +54,12 @@ python -m pip install flask waitress chardet
 
 ### 메인 앱 실행하기
 ```
+cd dinner_check
 ./app/start.sh
 ./app_qr/start.sh
 ```
 
-## 함수
+## 라이브러리 함수
 
 ### initializeJsonFile()
 1. 입력: none
